@@ -4,6 +4,21 @@ var env = require('node-env-file');
 // Pull from local .env file if it exists
 env(path.join(__dirname, '.env'), {overwrite: true, raise: false});
 
+var database;
+if (process.env.DATABASE_URL) {
+  database = {
+    client: 'pg',
+    connection: process.env.DATABASE_URL
+  };
+} else {
+  database = {
+    client: 'sqlite3',
+    connection: {
+      filename: path.join(__dirname, '/content/data/ghost-dev.db')
+    }
+  };
+}
+
 var mail = {};
 if (process.env.MANDRILL_USERNAME) {
   mail = {
@@ -60,9 +75,7 @@ module.exports = {
   production: {
     url: process.env.SITE_URL,
     mail: mail,
-    database: {
-      connection: process.env.DATABASE_URL
-    },
+    database: database,
     storage: storage,
     fileStorage: !!storage,
     server: {
@@ -76,10 +89,7 @@ module.exports = {
   development: {
     url: process.env.SITE_URL || 'http://localhost',
     mail: mail,
-    database: {
-      connection: (process.env.DATABASE_URL ||
-        'sqlite://' + path.join(__dirname, '/content/data/ghost-dev.db'))
-    },
+    database: database,
     storage: storage,
     fileStorage: !!storage,
     server: {
